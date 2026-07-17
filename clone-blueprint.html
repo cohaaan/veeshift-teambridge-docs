@@ -101,7 +101,7 @@ footer { color: var(--muted); font-size: 13px; margin-top: 24px; font-family: "A
     <a href="index.html">← All docs</a>
     <a href="veeshift-internal.html">→ VeeShift internal / existing account</a>
     <hr style="border:none;border-top:1px solid #44403c;margin:12px 0;" />
-    <a href="#purpose">Purpose &amp; scope</a><a href="#platform-model">Platform model to clone</a><a href="#mvp-modules">Recommended MVP modules</a><a href="#data-model">Canonical data model (from live VeeShift shapes)</a><a href="#status-engine">Status engine (design this explicitly)</a><a href="#automation">Automation / workflow engine to build</a><a href="#api-shape">External API shape worth copying</a><a href="#mobile">Mobile worker product surface</a><a href="#build-order">Suggested build order</a><a href="#anti-patterns">Anti-patterns</a>
+    <a href="#purpose">Purpose &amp; scope</a><a href="#readiness">What we have vs still need</a><a href="#platform-model">Platform model to clone</a><a href="#mvp-modules">Recommended MVP modules</a><a href="#data-model">Canonical data model (from live VeeShift shapes)</a><a href="#status-engine">Status engine (design this explicitly)</a><a href="#automation">Automation / workflow engine to build</a><a href="#api-shape">External API shape worth copying</a><a href="#mobile">Mobile worker product surface</a><a href="#build-order">Suggested build order</a><a href="#anti-patterns">Anti-patterns</a>
   </nav>
   <main>
     <div class="hero">
@@ -116,6 +116,48 @@ footer { color: var(--muted); font-size: 13px; margin-top: 24px; font-family: "A
     <section id="purpose"><h2>Purpose &amp; scope</h2>
 <p>This guide is for <strong>building a new staffing product</strong> inspired by Teambridge / VeeShift — not for day-to-day ops in the live account. Use the sibling doc for the existing VeeShift Teambridge account.</p>
 <div class="note">Product inspiration is fine. Do not copy proprietary Teambridge UI, trademarks, or private automation configs into a public product. Rebuild your own schemas, policies, and workflows.</div>
+</section><section id="readiness"><h2>What we have vs still need</h2>
+<div class="ok"><strong>Verdict:</strong> Enough to design and ship an MVP staffing app. Not enough to clone VeeShift/Teambridge 1:1 without inventing status rules, automations, permissions, and rate logic yourself.</div>
+<div class="grid2">
+<section style="border:none;padding:0;margin:0;background:transparent">
+<h3>Have (good enough to build)</h3>
+<ul class="tight">
+<li>Core objects + field catalogs from live schema (Users, Shifts, Locations, Roles, Credentials, etc.)</li>
+<li>Relationship fields (assignee, location, roles, client…)</li>
+<li>Open API pattern (OAuth, collections/fields/records, filters, webhooks)</li>
+<li>Attendance inference from punches (late / ongoing / complete / no-show)</li>
+<li>Internal Shift Status + payroll/billing select options</li>
+<li>Product surface from public Teambridge docs (workspaces, policies, mobile actions)</li>
+<li>Integration lessons from proxy-admin / Stafflion notes</li>
+</ul>
+</section>
+<section style="border:none;padding:0;margin:0;background:transparent">
+<h3>Still need (decide or capture)</h3>
+<ul class="tight">
+<li><strong>Status rules</strong> — exact Open/Upcoming/Draft/Completed/Unfulfilled mapping (API <code>Status</code> is null)</li>
+<li><strong>Automations</strong> — export or rewrite unfulfilled / reconfirm / NCNS jobs with triggers + delays</li>
+<li><strong>Access groups</strong> — who can read/write which fields and mobile actions</li>
+<li><strong>Policy numbers</strong> — OT multipliers, break length, DNR/NCNS thresholds, tier rules</li>
+<li><strong>Rate engine</strong> — when bill vs pay, weekend/holiday, client overrides apply</li>
+<li><strong>Mobile evidence</strong> — geofence, photo, signature payload contracts</li>
+<li><strong>UX copy + screens</strong> — scheduling board, claim flow, payroll queues</li>
+<li><strong>Notifications</strong> — SMS/push templates and broadcast rules</li>
+</ul>
+</section>
+</div>
+<h3>How to fill the gaps (sources)</h3>
+<table>
+<thead><tr><th>Gap</th><th>Best source</th><th>MVP fallback</th></tr></thead>
+<tbody>
+<tr><td>UI Status</td><td>Teambridge eng / screen recordings of edge cases</td><td>Compute your own status from published + assignee + punches</td></tr>
+<tr><td>Automations</td><td>Admin workflow export / screenshots of each rule</td><td>Hard-code 5–10 jobs (unfilled, NCNS, reconfirm)</td></tr>
+<tr><td>Access groups</td><td>Admin permissions matrix export</td><td>Admin / Facility / Worker roles only</td></tr>
+<tr><td>Policies &amp; rates</td><td>Location policy JSON + payroll ops interview</td><td>1.5× OT after 40h; fixed break; per-role rates</td></tr>
+<tr><td>Mobile clock evidence</td><td>Capture one real clock-in network/payload</td><td>Store timestamp + optional lat/lng</td></tr>
+<tr><td>Partner webhooks</td><td>Settings → Outbound webhooks list</td><td>Subscribe shift_created / shift_updated only</td></tr>
+</tbody>
+</table>
+<div class="warn">Until the “still need” items are filled, treat this repo as a <strong>blueprint + data dictionary</strong>, not a turnkey product spec. Product decisions beat guessing Teambridge internals.</div>
 </section><section id="platform-model"><h2>Platform model to clone</h2>
 <p>Teambridge’s public docs describe a configurable ops platform. Clone these concepts, not just tables:</p>
 <ol>
