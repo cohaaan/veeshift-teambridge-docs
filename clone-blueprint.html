@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Build a Staffing Clone from Scratch</title>
+<style>
+:root {
+  --bg: #f6f3ee;
+  --panel: #fffdf9;
+  --ink: #1c1917;
+  --muted: #57534e;
+  --line: #e7e0d5;
+  --accent: #0f766e;
+  --accent-soft: #ccfbf1;
+  --warn: #9a3412;
+  --warn-soft: #ffedd5;
+  --ok: #166534;
+  --ok-soft: #dcfce7;
+  --code: #292524;
+  --sidebar: #1c1917;
+  --sidebar-ink: #fafaf9;
+  --sidebar-muted: #a8a29e;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  color: var(--ink);
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #d9f3ef 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #fde7d4 0%, transparent 50%),
+    var(--bg);
+  line-height: 1.55;
+}
+code, pre, .mono, table { font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12.5px; }
+a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+.layout { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+nav.toc {
+  position: sticky; top: 0; height: 100vh; overflow: auto;
+  background: var(--sidebar); color: var(--sidebar-ink); padding: 20px 16px 40px;
+}
+nav.toc .brand { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--sidebar-muted); margin-bottom: 8px; }
+nav.toc h1 { font-size: 20px; margin: 0 0 14px; font-weight: 650; line-height: 1.25; font-family: "Avenir Next", "Segoe UI", sans-serif; }
+nav.toc input {
+  width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid #44403c;
+  background: #292524; color: #fff; margin-bottom: 14px;
+}
+nav.toc a { color: #e7e5e4; text-decoration: none; display: block; padding: 5px 8px; border-radius: 8px; font-size: 13px; font-family: "Avenir Next", "Segoe UI", sans-serif; }
+nav.toc a:hover, nav.toc a.active { background: #292524; color: #fff; }
+nav.toc .lvl2 { padding-left: 16px; color: var(--sidebar-muted); font-size: 12px; }
+main { padding: 36px 48px 80px; max-width: 1100px; }
+.hero {
+  background: linear-gradient(135deg, #134e4a 0%, #0f766e 45%, #b45309 140%);
+  color: #fff; border-radius: 22px; padding: 28px 30px; margin-bottom: 28px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, .18);
+}
+.hero h1 { margin: 0 0 8px; font-size: 34px; font-family: "Avenir Next", "Segoe UI", sans-serif; }
+.hero p { margin: 0; max-width: 70ch; color: #ecfdf5; }
+.meta { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; background: rgba(255,255,255,.14); font-size: 12px; font-family: "Avenir Next", sans-serif; }
+section {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 18px;
+  padding: 22px 24px; margin: 0 0 18px; scroll-margin-top: 18px;
+}
+section h2 { margin: 0 0 10px; font-size: 24px; font-family: "Avenir Next", sans-serif; }
+section h3 { margin: 18px 0 8px; font-size: 17px; font-family: "Avenir Next", sans-serif; }
+.note, .warn, .ok {
+  border-radius: 12px; padding: 12px 14px; margin: 12px 0; font-family: "Avenir Next", sans-serif; font-size: 14px;
+}
+.note { background: var(--accent-soft); color: #115e59; }
+.warn { background: var(--warn-soft); color: var(--warn); }
+.ok { background: var(--ok-soft); color: var(--ok); }
+table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; }
+th, td { border-bottom: 1px solid var(--line); padding: 8px 8px; text-align: left; vertical-align: top; }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+tr:hover td { background: #faf7f2; }
+.hidden { display: none !important; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+@media (max-width: 980px) {
+  .layout { grid-template-columns: 1fr; }
+  nav.toc { position: relative; height: auto; }
+  main { padding: 20px; }
+  .grid2 { grid-template-columns: 1fr; }
+}
+ul.tight li { margin: 4px 0; }
+pre {
+  background: var(--code); color: #f5f5f4; padding: 14px 16px; border-radius: 12px; overflow: auto;
+}
+.kbd { background: #eee; border: 1px solid #ddd; border-radius: 6px; padding: 1px 6px; font-family: inherit; }
+footer { color: var(--muted); font-size: 13px; margin-top: 24px; font-family: "Avenir Next", sans-serif; }
+</style>
+</head>
+<body>
+<div class="layout">
+  <nav class="toc">
+    <div class="brand">Teambridge Docs</div>
+    <h1>Build a Staffing Clone from Scratch</h1>
+    <input id="q" type="search" placeholder="Search this page…" />
+    <a href="index.html">← All docs</a>
+    <a href="veeshift-internal.html">→ VeeShift internal / existing account</a>
+    <hr style="border:none;border-top:1px solid #44403c;margin:12px 0;" />
+    <a href="#purpose">Purpose &amp; scope</a><a href="#platform-model">Platform model to clone</a><a href="#mvp-modules">Recommended MVP modules</a><a href="#data-model">Canonical data model (from live VeeShift shapes)</a><a href="#status-engine">Status engine (design this explicitly)</a><a href="#automation">Automation / workflow engine to build</a><a href="#api-shape">External API shape worth copying</a><a href="#mobile">Mobile worker product surface</a><a href="#build-order">Suggested build order</a><a href="#anti-patterns">Anti-patterns</a>
+  </nav>
+  <main>
+    <div class="hero">
+      <h1>Build a Staffing Clone from Scratch</h1>
+      <p>Architecture blueprint for a new Teambridge-like healthcare staffing platform, using VeeShift’s live schema and Teambridge public docs as reference — without depending on proprietary UI Status logic that the Open API does not populate.</p>
+      <div class="meta">
+        <span class="chip">Generated 2026-07-17 00:31 UTC</span>
+        <span class="chip">Live account schema: 49 collections</span>
+        <span class="chip">No secrets in this file</span>
+      </div>
+    </div>
+    <section id="purpose"><h2>Purpose &amp; scope</h2>
+<p>This guide is for <strong>building a new staffing product</strong> inspired by Teambridge / VeeShift — not for day-to-day ops in the live account. Use the sibling doc for the existing VeeShift Teambridge account.</p>
+<div class="note">Product inspiration is fine. Do not copy proprietary Teambridge UI, trademarks, or private automation configs into a public product. Rebuild your own schemas, policies, and workflows.</div>
+</section><section id="platform-model"><h2>Platform model to clone</h2>
+<p>Teambridge’s public docs describe a configurable ops platform. Clone these concepts, not just tables:</p>
+<ol>
+<li><strong>Collections</strong> — object types (Users, Shifts, Locations, Roles, Documents, Jobs, Placements, custom objects).</li>
+<li><strong>Schemas</strong> — fields: text, number, select, datetime, currency, link-to-object, formula/computed, signature, rating, file, policy, widget.</li>
+<li><strong>Records</strong> — live rows; source of truth for scheduling and payroll evidence.</li>
+<li><strong>Workspaces</strong> — list / calendar / canvas views for open shifts, approvals, payroll, client portals.</li>
+<li><strong>Access groups</strong> — admin, manager, payroll, client/facility, worker; field + action + mobile section visibility.</li>
+<li><strong>Policies</strong> — overtime, credentials, DNR, tier eligibility, geofence clock-in (block / flag / match / optimize).</li>
+<li><strong>Workflows</strong> — trigger → condition → wait → action (update field, message, task, approval, AI specialist).</li>
+<li><strong>Mobile actions</strong> — claim/request shift, clock in/out, tasks, time off, reimbursements, callbacks.</li>
+</ol>
+<p>Official concept map: <a href="https://www.teambridge.com/doc/concepts">teambridge.com/doc/concepts</a></p>
+</section><section id="mvp-modules"><h2>Recommended MVP modules</h2>
+<div class="grid2">
+<section style="border:none;padding:0;margin:0;background:transparent">
+<h3>Must-have</h3>
+<ul class="tight">
+<li>Users (providers + facility staff)</li>
+<li>Locations (facilities + geofence + timezone)</li>
+<li>Roles (CNA/LPN/RN/CMT…)</li>
+<li>Shifts (schedule, assignee, publish, rates, clock)</li>
+<li>Credentials/documents + expiry</li>
+<li>Access groups + worker mobile flows</li>
+<li>Basic overtime / break policies</li>
+<li>Open API or export for payroll</li>
+</ul>
+</section>
+<section style="border:none;padding:0;margin:0;background:transparent">
+<h3>Phase 2</h3>
+<ul class="tight">
+<li>DNR lists & NCNS workflows</li>
+<li>Performance tiers & ratings</li>
+<li>Reconfirmation / late ETA</li>
+<li>Placements / permanent jobs (VeeMatch-style)</li>
+<li>Callbacks, reimbursements, disputes</li>
+<li>Webhooks to partners (Stafflion-style)</li>
+<li>Instant pay / background check integrations</li>
+</ul>
+</section>
+</div>
+</section><section id="data-model"><h2>Canonical data model (from live VeeShift shapes)</h2>
+<p>These collection IDs are from the <em>existing</em> VeeShift Teambridge account — useful as a reference shape when designing your clone. In a new product you will generate your own IDs.</p>
+<table><thead><tr><th>Object</th><th>Type</th><th>Reference collection UUID</th><th>Fields (live)</th></tr></thead><tbody>
+<tr><td>Shifts</td><td>shift</td><td class='mono'>ef071ba1-5c51-400a-bc84-52cf6978067a</td><td>162</td></tr><tr><td>Jobs</td><td>job</td><td class='mono'>047da6b5-eb2f-4b82-b798-d32a6bece172</td><td>20</td></tr><tr><td>Users</td><td>user</td><td class='mono'>e07ce6d3-0add-4b68-88f9-bc97f7866caf</td><td>132</td></tr><tr><td>Locations</td><td>location</td><td class='mono'>70a4db1e-cf5d-47e5-baca-33656ea42a10</td><td>77</td></tr><tr><td>Job Roles</td><td>role</td><td class='mono'>7a98b729-3e40-4c0b-93ab-c1e8d4326798</td><td>5</td></tr><tr><td>Placements</td><td>placement</td><td class='mono'>5e77beb2-57b1-49fe-968a-91c2d4bf301c</td><td>36</td></tr><tr><td>Shift Groups</td><td>shift_group</td><td class='mono'>5690d811-b953-4d57-8d9d-8cedf60771ee</td><td>11</td></tr>
+</tbody></table>
+<h3>Critical Shift relationships</h3>
+<ul class="tight">
+<li><code>Assignee</code> → Users</li>
+<li><code>Location</code> → Locations</li>
+<li><code>Roles</code> → Job Roles</li>
+<li><code>Client</code> → Client (custom)</li>
+<li><code>Shift Group</code> → Shift Groups</li>
+<li><code>Department</code> → Departments (custom)</li>
+<li>No direct Shift→Placement FK in live schema; placements are a parallel hiring object.</li>
+</ul>
+<h3>Time & money fields to implement early</h3>
+<ul class="tight">
+<li>Schedule: Start Time, End Time, Hours Scheduled (computed)</li>
+<li>Attendance: Clock In Time, Clock Out Time, Hours Worked (computed / or compute yourself)</li>
+<li>Pay: Pay Rate, Pay Bonus, Regular/OT/Double OT pay + rates</li>
+<li>Bill: Bill Rate, Bill Bonus, Regular/OT/Double OT bill + rates, Total Pay / Total Bill</li>
+<li>Workflow flags: Published, Archived, Payroll Status, Billing Status</li>
+</ul>
+</section><section id="status-engine"><h2>Status engine (design this explicitly)</h2>
+<div class="warn"><strong>Confirmed from live API:</strong> Shifts have a field named <code>Status</code> with type TEXT and <code>readOnly=true</code>. Across 400 sampled records via <code>/records</code>, every <code>Status</code> value was <code>null</code>. Do not depend on API <code>Status</code> for a clone or reporting pipeline unless Teambridge confirms it is populated for your account/views.</div>
+<div class="ok"><strong>Confirmed from Teambridge (via VeeShift engineering notes):</strong> attendance can be inferred from punches:
+<ul class="tight">
+<li><strong>Late</strong> — Start Time passed, Clock In empty</li>
+<li><strong>Ongoing</strong> — Clock In present, Clock Out empty</li>
+<li><strong>Complete / Completed</strong> — Clock In and Clock Out both present</li>
+<li><strong>No Show</strong> — End Time passed, both clock fields empty</li>
+</ul>
+Clock punches drive Total Pay / Total Bill duration calculations.</div>
+<p><strong>Recommended clone approach:</strong> store raw facts (<code>published</code>, <code>archived</code>, <code>assignee_id</code>, schedule + punches) and compute a display status in one pure function. Keep a separate ops enum (<code>internal_shift_status</code>) for manual/automation outcomes like Unfulfilled, Late Cancelation, Sent Home, Dispute.</p>
+<p>Live <code>Internal Shift Status</code> select options (ops-facing, writable): Showed Up, Showed Up Late, No Call No Show, Late Cancelation, Unfulfilled, Late Cancellation - Facility, Shift in Dispute, Sent Home - Showed Up, Open, Sent Home - Showed Up Late.</p>
+<p><strong>Uncertain (do not hardcode as vendor truth):</strong> exact UI mapping for Open / Upcoming / Draft / Unknown; unfulfilled automation (3h-before / 15-min poll / end cutoff); whether UI Status can change retroactively after shift end. Implement your own rules and document them.</p>
+</section><section id="automation"><h2>Automation / workflow engine to build</h2>
+<p>From Teambridge public docs (<a href="https://www.teambridge.com/doc/concepts/workflows">workflows concepts</a>):</p>
+<table><thead><tr><th>Part</th><th>Examples</th></tr></thead><tbody>
+<tr><td>Triggers</td><td>Record created, field updated, scheduled time, request submitted</td></tr>
+<tr><td>Conditions</td><td>Field equals / threshold / eligibility / policy match</td></tr>
+<tr><td>Waits</td><td>Delay until rollup recalculates; escalate after N minutes</td></tr>
+<tr><td>Actions</td><td>Update record, send message/SMS/push, assign task, request approval, change access, generate document</td></tr>
+<tr><td>Policies</td><td>Block, flag, rank/match, optimize</td></tr>
+<tr><td>AI specialists</td><td>Scoped read/write + messaging for repetitive follow-up</td></tr>
+</tbody></table>
+<h3>Starter automations for a healthcare staffing clone</h3>
+<ul class="tight">
+<li>Open shift broadcast when Published=true and Assignee empty</li>
+<li>Unfilled escalation N hours before start</li>
+<li>NCNS when End Time passed with no punches + assignee present</li>
+<li>Credential expiry → block claim</li>
+<li>DNR location link → hide/block facility shifts</li>
+<li>Tier rollup from late/NCNS counts</li>
+<li>Reconfirmation request T-24h / T-50m replacement</li>
+<li>Payroll: require clock out + break attestation before Approved</li>
+</ul>
+</section><section id="api-shape"><h2>External API shape worth copying</h2>
+<p>Teambridge External API (<code>https://open-api.teambridge.com</code>, OpenAPI 0.1.0):</p>
+<ul class="tight">
+<li>OAuth2 client credentials → Auth0 token → Bearer calls</li>
+<li><code>GET /v1/collections</code></li>
+<li><code>GET /v1/collections/{id}/fields</code> (discover UUIDs first)</li>
+<li><code>GET/POST /v1/collections/{id}/records</code> (page/size, max 50; filters <code>{fieldUUID}_{op}=value</code>)</li>
+<li><code>GET/PUT .../records/{recordId}</code></li>
+<li><code>POST /v1/documents</code></li>
+<li><code>GET /v1/timezones</code></li>
+<li>Mappings CRUD for external IDs (Bullhorn/ADP-style) — optional</li>
+<li>Outbound webhooks: HMAC <code>X-Webhook-Signature</code> + <code>X-Webhook-Timestamp</code>, events like <code>shift_created</code>, <code>shift_updated</code>, <code>user_updated</code></li>
+</ul>
+<pre>filter ops: _is _contains _gt _gte _lt _lte
+example: ?{startFieldUuid}_gte=2026-01-01&{startFieldUuid}_lte=2026-01-31</pre>
+<p>Full local OpenAPI download: <code>~/Downloads/openapi (1).json</code>. Public Redoc: <a href="https://docs.teambridge.com">docs.teambridge.com</a>.</p>
+</section><section id="mobile"><h2>Mobile worker product surface</h2>
+<p>From <a href="https://www.teambridge.com/doc/worker-quickstart">worker quickstart</a>, workers need:</p>
+<ol>
+<li>Invite / sign-in</li>
+<li>Browse eligible open shifts (role, location, credentials, tier, OT policy)</li>
+<li>Claim or request → confirmation</li>
+<li>Clock in/out (optional geofence)</li>
+<li>Complete shift tasks (notes/photos)</li>
+<li>Time off, reimbursements (receipt photo), callbacks</li>
+<li>Facility instructions / content</li>
+<li>Chat / SMS / broadcast for urgent coverage</li>
+</ol>
+<p>Persist: timestamps, actor, optional lat/lng + geofence pass/fail, photos/files, signatures, linked shift/user IDs.</p>
+</section><section id="build-order"><h2>Suggested build order</h2>
+<ol>
+<li>Auth + orgs + access groups</li>
+<li>Users / Locations / Roles CRUD</li>
+<li>Shift create + publish + assign + calendar views</li>
+<li>Eligibility engine (role + credential + DNR + tier)</li>
+<li>Mobile claim + clock punches</li>
+<li>Status computer + exception queues</li>
+<li>Pay/bill rate application + OT policies</li>
+<li>Approvals (payroll/billing)</li>
+<li>Workflows engine + notifications</li>
+<li>Webhooks + partner mappings</li>
+<li>Placements/jobs hiring track</li>
+<li>Reporting warehouse (snapshot tables like ShiftSnapshot)</li>
+</ol>
+</section><section id="anti-patterns"><h2>Anti-patterns</h2>
+<ul class="tight">
+<li>Relying on a display-only Status field that APIs leave null</li>
+<li>Treating Hours Worked / Break Duration as authoritative if missing from payloads — prefer punches</li>
+<li>Outbound-only partner proxy when partner requires shift bootstrap + approval API (Stafflion lesson)</li>
+<li>Copying VeeShift custom field soup into MVP — start thinner</li>
+<li>Putting secrets or live OAuth client secrets into docs or frontend</li>
+</ul>
+</section>
+    <footer>Internal VeeShift documentation. Sources: live Open API field metadata, teambridge-proxy-admin, docs.teambridge.com, teambridge.com/doc. Do not treat inferred Status rules as vendor-confirmed unless marked Confirmed.</footer>
+  </main>
+</div>
+<script>
+(function(){
+  const input = document.getElementById('q');
+  const sections = [...document.querySelectorAll('main section')];
+  const tocLinks = [...document.querySelectorAll('nav.toc a[href^="#"]')];
+  function filter(){
+    const q = (input.value || '').trim().toLowerCase();
+    sections.forEach(sec => {
+      const hit = !q || sec.innerText.toLowerCase().includes(q);
+      sec.classList.toggle('hidden', !hit);
+      const link = document.querySelector('nav.toc a[href="#' + sec.id + '"]');
+      if (link) link.classList.toggle('hidden', !hit);
+    });
+  }
+  input.addEventListener('input', filter);
+  const obs = new IntersectionObserver((entries)=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      tocLinks.forEach(a=>a.classList.remove('active'));
+      const a = document.querySelector('nav.toc a[href="#'+e.target.id+'"]');
+      if(a) a.classList.add('active');
+    });
+  }, {rootMargin:'-20% 0px -70% 0px', threshold:0});
+  sections.forEach(s=>obs.observe(s));
+})();
+</script>
+</body>
+</html>
