@@ -1,11 +1,13 @@
 # Teambridge Docs (VeeShift)
 
+**Live review URL:** https://cohaaan.github.io/veeshift-teambridge-docs/
+
 Searchable HTML documentation for:
 
 1. **clone-blueprint.html** — build a new staffing clone from scratch
-2. **veeshift-internal.html** — existing VeeShift Teambridge account (live schema + ops)
+2. **veeshift-internal.html** — existing VeeShift Teambridge account (all 49 collections with full field tables)
 
-Open `index.html` in a browser.
+Open `index.html` locally, or use the Pages URL above to share.
 
 ## Regenerate schema JSON
 
